@@ -1,6 +1,6 @@
 # Yoga Practice Guide — Domain Q&A Chatbot
 
-A domain-specific chatbot that answers questions about **physical yoga practice**, covering asanas (poses) and pranayama (breathwork techniques).
+A domain-specific chatbot that answers questions about **yoga practice**, covering asanas (poses) and pranayama (breathwork techniques).
 
 ## What it covers
 
