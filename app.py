@@ -14,7 +14,7 @@ load_dotenv()
 
 # --- Config ---
 
-MODEL = "vertex_ai/gemini-3.0-flash-lite"
+MODEL = "vertex_ai/gemini-2.5-flash-lite"
 
 # Vertex AI Imagen model used for pose illustrations.
 # imagen-3.0-fast-generate-001 is the lightweight ("nano") Imagen 3 variant —
