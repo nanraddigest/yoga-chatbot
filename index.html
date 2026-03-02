@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yoga Practice Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <!-- Markdown renderer: converts LLM output (bold, bullets, headings) to HTML -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sage:        #3a5a40;
+      --sage-dark:   #2d4a33;
+      --sage-light:  #edf4ec;
+      --sage-mid:    #c5d9bc;
+      --sage-pale:   #f0f7ef;
+      --cream:       #f4f1ec;
+      --terra:       #b5794a;
+      --terra-light: #f5e8db;
+      --text-main:   #2d2d2d;
+      --text-muted:  #6b7c6b;
+      --text-faint:  #8a9e8a;
+    }
+
+    body {
+      font-family: 'Lato', system-ui, sans-serif;
+      font-weight: 400;
+      background: radial-gradient(ellipse at 65% 0%, #deeade 0%, var(--cream) 55%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem 2rem;
+    }
+
+    /* ── Breathing ring ─────────────────────────────────────────── */
+    .breath-ring-wrap {
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .breath-ring {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2px solid rgba(58, 90, 64, 0.25);
+      background: radial-gradient(circle, rgba(58,90,64,0.08) 0%, transparent 70%);
+      animation: breath-pulse 8s ease-in-out infinite;
+      position: relative;
+    }
+
+    .breath-ring::after {
+      content: '🌿';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+
+    @keyframes breath-pulse {
+      0%, 100% { transform: scale(1);    opacity: 0.7; }
+      50%       { transform: scale(1.12); opacity: 1;   }
+    }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      max-width: 560px;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 2.2rem;
+      font-weight: 600;
+      color: var(--sage);
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+    }
+
+    header p.subtitle {
+      margin-top: 0.55rem;
+      font-size: 1rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* ── Suggestion chips ────────────────────────────────────────── */
+    #chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      max-width: 620px;
+      transition: opacity 0.3s, max-height 0.4s;
+      overflow: hidden;
+      max-height: 120px;
+    }
+
+    #chips.hidden {
+      opacity: 0;
+      max-height: 0;
+      margin-bottom: 0;
+      pointer-events: none;
+    }
+
+    .chip {
+      padding: 0.45rem 1rem;
+      border: 1.5px solid var(--sage-mid);
+      border-radius: 999px;
+      background: var(--sage-pale);
+      color: var(--sage);
+      font-family: 'Lato', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .chip:hover {
+      background: var(--sage);
+      color: #fff;
+      border-color: var(--sage);
+    }
+
+    /* ── Chat container ──────────────────────────────────────────── */
+    #chat-container {
+      width: 100%;
+      max-width: 700px;
+      background: #fff;
+      border: 1px solid var(--sage-mid);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(58, 90, 64, 0.09), 0 1px 4px rgba(0,0,0,0.04);
+    }
+
+    /* ── Messages area ───────────────────────────────────────────── */
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.4rem 1.4rem 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      min-height: 380px;
+      max-height: 540px;
+      scroll-behavior: smooth;
+    }
+
+    #messages::-webkit-scrollbar { width: 5px; }
+    #messages::-webkit-scrollbar-track { background: transparent; }
+    #messages::-webkit-scrollbar-thumb { background: var(--sage-mid); border-radius: 4px; }
+
+    /* ── Message bubbles ─────────────────────────────────────────── */
+    .message {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      max-width: 86%;
+    }
+
+    .message.user      { align-self: flex-end;  align-items: flex-end; }
+    .message.assistant { align-self: flex-start; align-items: flex-start; }
+
+    .message .label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    .message.user .label { color: var(--terra); }
+
+    .message .bubble {
+      padding: 0.75rem 1.05rem;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      line-height: 1.65;
+    }
+
+    .message.user .bubble {
+      background: var(--terra-light);
+      color: #3a2a1a;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant .bubble {
+      background: var(--sage-light);
+      color: #1e301e;
+      border-bottom-left-radius: 4px;
+    }
+
+    /* ── Markdown element styles inside chat bubbles ─────────────── */
+    .message .bubble p            { margin: 0 0 0.5rem; }
+    .message .bubble p:last-child { margin-bottom: 0; }
+    .message .bubble ul,
+    .message .bubble ol           { margin: 0.25rem 0 0.5rem 1.25rem; padding: 0; }
+    .message .bubble li           { margin-bottom: 0.2rem; }
+    .message .bubble strong       { font-weight: 600; }
+    .message .bubble h1,
+    .message .bubble h2,
+    .message .bubble h3           { margin: 0.6rem 0 0.3rem; font-size: 1rem; font-weight: 600; }
+
+    /* ── Loading dots ────────────────────────────────────────────── */
+    .dots-wrap {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0.6rem 0.4rem 0.2rem;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-faint);
+      animation: dot-pulse 1.4s ease-in-out infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dot-pulse {
+      0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+      40%            { opacity: 1;    transform: scale(1);   }
+    }
+
+    /* ── Pose image card ─────────────────────────────────────────── */
+    .pose-image-wrap {
+      margin-top: 0.6rem;
+      border-radius: 12px;
+      overflow: hidden;
+      max-width: 200px;
+      background: var(--sage-pale);
+      padding: 0.6rem;
+      border: 1px solid var(--sage-mid);
+    }
+
+    .pose-image {
+      width: 100%;
+      display: block;
+      border-radius: 6px;
+    }
+
+    .pose-image-label {
+      font-size: 0.7rem;
+      color: var(--text-faint);
+      text-align: center;
+      margin-top: 0.3rem;
+      font-style: italic;
+    }
+
+    /* ── Input area ──────────────────────────────────────────────── */
+    #input-area {
+      display: flex;
+      gap: 0.65rem;
+      padding: 1rem 1.25rem 1.1rem;
+      border-top: 1px solid #e4ede2;
+      background: #f9faf8;
+    }
+
+    #user-input {
+      flex: 1;
+      border: 1.5px solid var(--sage-mid);
+      border-radius: 10px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.95rem;
+      font-family: 'Lato', sans-serif;
+      color: var(--text-main);
+      background: #fff;
+      resize: none;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      min-height: 44px;
+      max-height: 130px;
+    }
+
+    #user-input:focus {
+      border-color: var(--sage);
+      box-shadow: 0 0 0 3px rgba(58,90,64,0.08);
+    }
+
+    #send-btn {
+      padding: 0.65rem 1.3rem;
+      background: var(--sage);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      align-self: flex-end;
+      min-height: 44px;
+      letter-spacing: 0.02em;
+    }
+
+    #send-btn:hover   { background: var(--sage-dark); }
+    #send-btn:active  { transform: scale(0.97); }
+    #send-btn:disabled { background: #8aad8e; cursor: not-allowed; transform: none; }
+
+    /* ── Safety note ─────────────────────────────────────────────── */
+    .scope-note {
+      font-size: 0.75rem;
+      color: var(--text-faint);
+      text-align: center;
+      padding: 0.45rem 1.2rem 0.7rem;
+      background: #f9faf8;
+      border-top: 1px solid #eef3ec;
+      line-height: 1.5;
+    }
+
+    .scope-note span { color: var(--terra); }
+
+    /* ── Divider line in messages ────────────────────────────────── */
+    .welcome-divider {
+      width: 40px;
+      height: 2px;
+      background: var(--sage-mid);
+      border-radius: 2px;
+      align-self: flex-start;
+      margin: 0.2rem 0 0.4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Breathing ring -->
+  <div class="breath-ring-wrap">
+    <div class="breath-ring" aria-hidden="true"></div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <h1>Yoga Practice Guide</h1>
+    <p class="subtitle">
+      Your calm guide to asanas, breathwork &amp; practice plans.<br>
+      Ask anything — from your very first pose to a full sequence.
+    </p>
+  </header>
+
+  <!-- Suggestion chips -->
+  <div id="chips" role="list" aria-label="Suggested questions">
+    <button class="chip" onclick="sendChip(this)" role="listitem">What is yoga?</button>
+    <button class="chip" onclick="sendChip(this)" role="listitem">Create a beginner practice plan</button>
+    <button class="chip" onclick="sendChip(this)" role="listitem">Teach me the Warrior pose</button>
+    <button class="chip" onclick="sendChip(this)" role="listitem">What is pranayama?</button>
+  </div>
+
+  <!-- Chat window -->
+  <div id="chat-container">
+    <div id="messages"></div>
+    <div id="input-area">
+      <textarea
+        id="user-input"
+        placeholder="Ask about a pose, breathwork technique, or practice plan…"
+        rows="1"
+        aria-label="Your question"
+      ></textarea>
+      <button id="send-btn" onclick="send()">Ask</button>
+    </div>
+    <p class="scope-note">
+      Questions about <span>pain, injury, pregnancy, or medical conditions</span> are referred to a qualified instructor or healthcare professional.
+    </p>
+  </div>
+
+  <script>
+    let sessionId = null;
+    let firstMessageSent = false;
+    const messagesEl = document.getElementById('messages');
+    const inputEl    = document.getElementById('user-input');
+    const sendBtn    = document.getElementById('send-btn');
+    const chipsEl    = document.getElementById('chips');
+
+    // ── Inject welcome message on load ────────────────────────────
+    window.addEventListener('DOMContentLoaded', () => {
+      addMessage(
+        'assistant',
+        'I\'m your yoga practice guide. Ask me about poses, breathwork, ' +
+        'sequencing, or practice plans — whether you\'re brand new to yoga or ' +
+        'deepening an existing practice.',
+        false, null
+      );
+    });
+
+    // ── Build and append a message bubble ─────────────────────────
+    function addMessage(role, text, isLoading = false, imageUrl = null) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `message ${role}`;
+
+      const label = document.createElement('div');
+      label.className = 'label';
+      label.textContent = role === 'user' ? 'you' : 'Yoga Guide';
+      wrapper.appendChild(label);
+
+      if (isLoading) {
+        const dotsWrap = document.createElement('div');
+        dotsWrap.className = 'dots-wrap';
+        for (let i = 0; i < 3; i++) {
+          const dot = document.createElement('span');
+          dot.className = 'dot';
+          dotsWrap.appendChild(dot);
+        }
+        wrapper.appendChild(dotsWrap);
+      } else {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.innerHTML = marked.parse(text);
+        wrapper.appendChild(bubble);
+
+        // Pose illustration
+        if (imageUrl && role === 'assistant') {
+          const imgWrap = document.createElement('div');
+          imgWrap.className = 'pose-image-wrap';
+
+          const img = document.createElement('img');
+          img.src = imageUrl;
+          img.alt = 'Pose illustration';
+          img.className = 'pose-image';
+          img.onerror = () => { imgWrap.style.display = 'none'; };
+          imgWrap.appendChild(img);
+
+          const imgLabel = document.createElement('p');
+          imgLabel.className = 'pose-image-label';
+          imgLabel.textContent = 'Pose illustration';
+          imgWrap.appendChild(imgLabel);
+
+          wrapper.appendChild(imgWrap);
+        }
+      }
+
+      messagesEl.appendChild(wrapper);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return wrapper;
+    }
+
+    // ── Send a message ─────────────────────────────────────────────
+    async function send() {
+      const text = inputEl.value.trim();
+      if (!text) return;
+
+      // Hide chips on first user message
+      if (!firstMessageSent) {
+        firstMessageSent = true;
+        chipsEl.classList.add('hidden');
+      }
+
+      inputEl.value = '';
+      inputEl.style.height = 'auto';
+      sendBtn.disabled = true;
+
+      addMessage('user', text);
+      const loadingEl = addMessage('assistant', '', true);
+
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, session_id: sessionId }),
+        });
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+        const data = await res.json();
+        sessionId = data.session_id;
+        loadingEl.remove();
+        addMessage('assistant', data.response, false, data.image_url || null);
+      } catch (err) {
+        loadingEl.remove();
+        addMessage('assistant', `Something went wrong: ${err.message}`);
+      } finally {
+        sendBtn.disabled = false;
+        inputEl.focus();
+      }
+    }
+
+    // ── Chip click ─────────────────────────────────────────────────
+    function sendChip(btn) {
+      inputEl.value = btn.textContent;
+      send();
+    }
+
+    // ── Keyboard shortcut ──────────────────────────────────────────
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
+    });
+
+    // ── Auto-resize textarea ───────────────────────────────────────
+    inputEl.addEventListener('input', () => {
+      inputEl.style.height = 'auto';
+      inputEl.style.height = Math.min(inputEl.scrollHeight, 130) + 'px';
+    });
+  </script>
+</body>
+</html>
